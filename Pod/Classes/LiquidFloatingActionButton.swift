@@ -73,7 +73,7 @@ public class LiquidFloatingActionButton : UIView {
         setup()
     }
 
-    required public init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         setup()
     }
@@ -173,7 +173,7 @@ public class LiquidFloatingActionButton : UIView {
     }
     
     private func plusKeyframe(closed: Bool) -> CAKeyframeAnimation {
-        var paths = closed ? [
+        let paths = closed ? [
                 pathPlus(CGFloat(M_PI * 0)),
                 pathPlus(CGFloat(M_PI * 0.125)),
                 pathPlus(CGFloat(M_PI * 0.25)),
@@ -193,18 +193,19 @@ public class LiquidFloatingActionButton : UIView {
     }
 
     // MARK: Events
-    public override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+    public override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        
         self.touching = true
         setNeedsDisplay()
     }
-    
-    public override func touchesEnded(touches: Set<NSObject>, withEvent event: UIEvent) {
+
+    public override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         self.touching = false
         setNeedsDisplay()
         didTapped()
     }
-    
-    public override func touchesCancelled(touches: Set<NSObject>!, withEvent event: UIEvent!) {
+
+    public override func touchesCancelled(touches: Set<UITouch>?, withEvent event: UIEvent?) {
         self.touching = false
         setNeedsDisplay()
     }
@@ -248,7 +249,7 @@ public class LiquidFloatingActionButton : UIView {
     }
     
     public func didTappedCell(target: LiquidFloatingCell) {
-        if let source = dataSource {
+        if dataSource != nil {
             let cells = cellArray()
             for i in 0..<cells.count {
                 let cell = cells[i]
@@ -322,8 +323,8 @@ class CircleLiquidBaseView : ActionBarBaseView {
 
     func open(cells: [LiquidFloatingCell]) {
         stop()
-        let distance: CGFloat = self.frame.height * 1.25
-        displayLink = CADisplayLink(target: self, selector: Selector("didDisplayRefresh:"))
+//        let distance: CGFloat = self.frame.height * 1.25
+        displayLink = CADisplayLink(target: self, selector: #selector(CircleLiquidBaseView.didDisplayRefresh(_:)))
         displayLink?.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
         opening = true
         for cell in cells {
@@ -335,9 +336,9 @@ class CircleLiquidBaseView : ActionBarBaseView {
     
     func close(cells: [LiquidFloatingCell]) {
         stop()
-        let distance: CGFloat = self.frame.height * 1.25
+//        let distance: CGFloat = self.frame.height * 1.25
         opening = false
-        displayLink = CADisplayLink(target: self, selector: Selector("didDisplayRefresh:"))
+        displayLink = CADisplayLink(target: self, selector: #selector(CircleLiquidBaseView.didDisplayRefresh(_:)))
         displayLink?.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
         for cell in cells {
             cell.layer.removeAllAnimations()
@@ -443,7 +444,7 @@ class CircleLiquidBaseView : ActionBarBaseView {
         if t < 0 {
             return 0
         }
-        var t2 = t * 2
+//        var t2 = t * 2
         return -1 * t * (t - 2)
     }
     
@@ -517,14 +518,14 @@ public class LiquidFloatingCell : LiquittableCircle {
     
     func update(key: CGFloat, open: Bool) {
         for subview in self.subviews {
-            if let view = subview as? UIView {
+            if let view: UIView = subview {
                 let ratio = max(2 * (key * key - 0.5), 0)
                 view.alpha = open ? ratio : -ratio
             }
         }
     }
     
-    public override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+    public override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         if responsible {
             originalColor = color
             color = originalColor.white(0.5)
@@ -532,14 +533,14 @@ public class LiquidFloatingCell : LiquittableCircle {
         }
     }
     
-    public override func touchesCancelled(touches: Set<NSObject>!, withEvent event: UIEvent!) {
+    public override func touchesCancelled(touches: Set<UITouch>!, withEvent event: UIEvent?) {
         if responsible {
             color = originalColor
             setNeedsDisplay()
         }
     }
     
-    override public func touchesEnded(touches: Set<NSObject>, withEvent event: UIEvent) {
+    override public func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         color = originalColor
         actionButton?.didTappedCell(self)
     }
